@@ -24,7 +24,6 @@ MitsubishiHeatPump = cg.global_ns.class_(
     "MitsubishiHeatPump", climate.Climate, cg.PollingComponent
 )
 
-
 def valid_uart(uart):
     if CORE.is_esp8266:
         uarts = ["UART0"]  # UART1 is tx-only
