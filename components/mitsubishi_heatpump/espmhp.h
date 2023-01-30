@@ -15,7 +15,7 @@
  * - ESPHome 1.19.1 or greater
  */
 
-#define USE_CALLBACKS
+
 
 #include "esphome.h"
 #include "esphome/core/preferences.h"
@@ -59,8 +59,7 @@ class MitsubishiHeatPump : public PollingComponent, public climate::Climate {
 
         // Print a banner with library information.
         void banner() {
-            ESP_LOGI(TAG, "ESPHome MitsubishiHeatPump version %s",
-                    ESPMHP_VERSION);
+            ESP_LOGI(TAG, "ESPHome MitsubishiHeatPump version %s", ESPMHP_VERSION);
         }
 
         // Set the baud rate. Must be called before setup() to have any effect.

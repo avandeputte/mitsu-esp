@@ -39,46 +39,28 @@ void MitsubishiHeatPump::update() {
     // This will be called every "update_interval" milliseconds.
     //this->dump_config();
     this->hp->sync();
-#ifndef USE_CALLBACKS
+
     this->hpSettingsChanged();
     heatpumpStatus currentStatus = hp->getStatus();
     this->hpStatusChanged(currentStatus);
-#endif
+
 }
 
 void MitsubishiHeatPump::set_baud_rate(int baud) {
     this->baud_ = baud;
 }
 
-/**
- * Get our supported traits.
- *
- * Note:
- * Many of the following traits are only available in the 1.5.0 dev train of
- * ESPHome, particularly the Dry operation mode, and several of the fan modes.
- *
- * Returns:
- *   This class' supported climate::ClimateTraits.
- */
 climate::ClimateTraits MitsubishiHeatPump::traits() {
     return traits_;
 }
 
-/**
- * Modify our supported traits.
- *
- * Returns:
- *   A reference to this class' supported climate::ClimateTraits.
- */
 climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
     return traits_;
 }
 
-/**
- * Implement control of a MitsubishiHeatPump.
- *
- * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
- */
+
+// Implement control of a MitsubishiHeatPump.
+// Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     ESP_LOGI("control", "Received a control request from HA");
 
@@ -92,7 +74,6 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         case climate::CLIMATE_MODE_COOL:
             hp->setModeSetting("COOL");
             hp->setPowerSetting("ON");
-
             if (has_mode){
                 if (cool_setpoint.has_value() && !has_temp) {
                     hp->setTemperature(cool_setpoint.value());
@@ -153,18 +134,13 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     }
 
     if (has_temp){
-        ESP_LOGV(
-            "control", "Sending target temp: %.1f",
-            *call.get_target_temperature()
-        );
+        ESP_LOGD("control", "Sending target temp: %.1f",*call.get_target_temperature());
         hp->setTemperature(*call.get_target_temperature());
         this->target_temperature = *call.get_target_temperature();
         updated = true;
     }
-
-    //const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
     if (call.get_fan_mode().has_value()) {
-        ESP_LOGV("control", "Requested fan mode is %s", *call.get_fan_mode());
+        ESP_LOGD("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
             case climate::CLIMATE_FAN_LOW:
@@ -200,9 +176,8 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         }
     }
 
-    //const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
     if (call.get_swing_mode().has_value()) {
-        ESP_LOGV("control", "control - requested swing mode is %s",
+        ESP_LOGD("control", "control - requested swing mode is %s",
                 *call.get_swing_mode());
 
         this->swing_mode = *call.get_swing_mode();
@@ -292,11 +267,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
             }
             this->action = climate::CLIMATE_ACTION_IDLE;
         } else {
-            ESP_LOGW(
-                    "SettingsChanged",
-                    "Unknown climate mode value %s received from HeatPump",
-                    currentSettings.mode
-            );
+            ESP_LOGW("SettingsChanged","Unknown climate mode value %s received from HeatPump",currentSettings.mode);
         }
     } else {
         this->mode = climate::CLIMATE_MODE_OFF;
@@ -345,11 +316,8 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
         ESP_LOGD("SettingsChanged", "vane hp:AUTO --> ha:OFF");
-
     }
     ESP_LOGI("SettingsChanged", "Swing mode: %i", this->swing_mode);
-
-
 
     /*
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
@@ -373,16 +341,14 @@ void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
         case climate::CLIMATE_MODE_HEAT:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_HEATING;
-            }
-            else {
+            } else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
         case climate::CLIMATE_MODE_COOL:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_COOLING;
-            }
-            else {
+            } else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
@@ -399,8 +365,7 @@ void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
         case climate::CLIMATE_MODE_DRY:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_DRYING;
-            }
-            else {
+            } else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
@@ -427,8 +392,7 @@ void MitsubishiHeatPump::setup() {
         ESP_LOGCONFIG(
                 "setup",
                 "No HardwareSerial was provided. "
-                "Software serial ports are unsupported by this component."
-        );
+                "Software serial ports are unsupported by this component.");
         this->mark_failed();
         return;
     }
@@ -441,7 +405,7 @@ void MitsubishiHeatPump::setup() {
     this->fan_mode = climate::CLIMATE_FAN_OFF;
     this->swing_mode = climate::CLIMATE_SWING_OFF;
 
-#ifdef USE_CALLBACKS
+
     hp->setSettingsChangedCallback(
             [this]() {
                 this->hpSettingsChanged();
@@ -453,7 +417,7 @@ void MitsubishiHeatPump::setup() {
                 this->hpStatusChanged(currentStatus);
             }
     );
-#endif
+
 
     ESP_LOGCONFIG(
             "setup",
@@ -467,8 +431,7 @@ void MitsubishiHeatPump::setup() {
 
     if (hp->connect(this->get_hw_serial_(), this->baud_, -1, -1)) {
         hp->sync();
-    }
-    else {
+    } else {
         ESP_LOGCONFIG(
                 "setup",
                 "Connection to HeatPump failed."
