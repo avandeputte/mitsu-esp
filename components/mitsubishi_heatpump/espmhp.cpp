@@ -98,7 +98,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
  * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
  */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGV(TAG, "Control called.");
+    ESP_LOGD(TAG, "Control called.");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -171,7 +171,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     }
 
     if (has_temp){
-        ESP_LOGV(
+        ESP_LOGD(
             "control", "Sending target temp: %.1f",
             *call.get_target_temperature()
         );
@@ -182,7 +182,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 
     //const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
     if (call.get_fan_mode().has_value()) {
-        ESP_LOGV("control", "Requested fan mode is %s", *call.get_fan_mode());
+        ESP_LOGD("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
             case climate::CLIMATE_FAN_OFF:
@@ -220,7 +220,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 
     //const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
     if (call.get_swing_mode().has_value()) {
-        ESP_LOGV(TAG, "control - requested swing mode is %s",
+        ESP_LOGD(TAG, "control - requested swing mode is %s",
                 *call.get_swing_mode());
 
         this->swing_mode = *call.get_swing_mode();
@@ -230,15 +230,15 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_BOTH:
-                hp->setVaneSetting("SWING");
+                hp->setVaneSetting("1");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_HORIZONTAL:
-                hp->setVaneSetting("2");
+                hp->setVaneSetting("5");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
-                hp->setVaneSetting("5");
+                hp->setVaneSetting("3");
                 updated = true;
                 break;
             default:
@@ -265,7 +265,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
          * to punt on the update. Likely not an issue when run in callback
          * mode, but that isn't working right yet.
          */
-        ESP_LOGW(TAG, "Waiting for HeatPump to read the settings the first time.");
+        ESP_LOGD(TAG, "Waiting for HeatPump to read the settings the first time.");
         esphome::delay(10);
         return;
     }
@@ -316,7 +316,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
         this->action = climate::CLIMATE_ACTION_OFF;
     }
 
-    ESP_LOGI(TAG, "Climate mode is: %i", this->mode);
+    ESP_LOGI(TAG, "Climate mode: %i", this->mode);
 
     /*
      * ******* HANDLE FAN CHANGES ********
@@ -336,7 +336,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
     }
-    ESP_LOGI(TAG, "Fan mode is: %i", this->fan_mode);
+    ESP_LOGI(TAG, "Fan mode: %i", this->fan_mode);
 
     /* ******** HANDLE MITSUBISHI VANE CHANGES ********
      * const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
@@ -350,7 +350,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
     }
-    ESP_LOGI(TAG, "Swing mode is: %i", this->swing_mode);
+    ESP_LOGI(TAG, "Swing mode: %i", this->swing_mode);
 
 
 
@@ -358,7 +358,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
      */
     this->target_temperature = currentSettings.temperature;
-    ESP_LOGI(TAG, "Target temp is: %f", this->target_temperature);
+    ESP_LOGI(TAG, "Target temp: %f", this->target_temperature);
 
     /*
      * ******** Publish state back to ESPHome. ********
