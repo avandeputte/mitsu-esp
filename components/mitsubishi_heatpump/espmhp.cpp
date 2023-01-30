@@ -189,23 +189,23 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 hp->setPowerSetting("OFF");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_DIFFUSE:
+            case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_LOW:
+            case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_MEDIUM:
+            case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_MIDDLE:
+            case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_HIGH:
+            case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
                 updated = true;
                 break;
@@ -229,8 +229,16 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 hp->setVaneSetting("AUTO");
                 updated = true;
                 break;
-            case climate::CLIMATE_SWING_VERTICAL:
+            case climate::CLIMATE_SWING_BOTH:
                 hp->setVaneSetting("SWING");
+                updated = true;
+                break;
+            case climate::CLIMATE_SWING_HORIZONTAL:
+                hp->setVaneSetting("2");
+                updated = true;
+                break;
+            case climate::CLIMATE_SWING_VERTICAL:
+                hp->setVaneSetting("5");
                 updated = true;
                 break;
             default:
@@ -316,15 +324,15 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      * const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
      */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
-        this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
+        this->fan_mode = climate::CLIMATE_FAN_LOW;
     } else if (strcmp(currentSettings.fan, "1") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_LOW;
-    } else if (strcmp(currentSettings.fan, "2") == 0) {
             this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
-    } else if (strcmp(currentSettings.fan, "3") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_MIDDLE;
-    } else if (strcmp(currentSettings.fan, "4") == 0) {
+    } else if (strcmp(currentSettings.fan, "2") == 0) {
             this->fan_mode = climate::CLIMATE_FAN_HIGH;
+    } else if (strcmp(currentSettings.fan, "3") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_FOCUS;
+    } else if (strcmp(currentSettings.fan, "4") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
     }
@@ -334,9 +342,12 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      * const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
      */
     if (strcmp(currentSettings.vane, "SWING") == 0) {
+        this->swing_mode = climate::CLIMATE_SWING_BOTH;
+    } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-    }
-    else {
+    } else if (strcmp(currentSettings.vane, "2") == 0) {
+        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+    } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
     }
     ESP_LOGI(TAG, "Swing mode is: %i", this->swing_mode);

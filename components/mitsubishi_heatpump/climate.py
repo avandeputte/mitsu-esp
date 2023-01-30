@@ -13,13 +13,12 @@ from esphome.const import (
 )
 from esphome.core import CORE, coroutine
 
-
 AUTO_LOAD = ["climate"]
 
 CONF_SUPPORTS = "supports"
 DEFAULT_CLIMATE_MODES = ["HEAT_COOL", "COOL", "HEAT", "DRY", "FAN_ONLY"]
-DEFAULT_FAN_MODES = ["AUTO", "DIFFUSE", "LOW", "MEDIUM", "MIDDLE", "HIGH"]
-DEFAULT_SWING_MODES = ["OFF", "VERTICAL"]
+DEFAULT_FAN_MODES = ["AUTO", "LOW", "MEDIUM", "HIGH", "FOCUS", "DIFFUSE"]
+DEFAULT_SWING_MODES = ["OFF", "VERTICAL", "HORIZONTAL", "BOTH"]
 
 MitsubishiHeatPump = cg.global_ns.class_(
     "MitsubishiHeatPump", climate.Climate, cg.PollingComponent
@@ -91,5 +90,5 @@ def to_code(config):
     cg.add_library(
         name="HeatPump",
         repository="https://github.com/SwiCago/HeatPump",
-        version="ed3b700dd4b110253368cc9f6960516d228e33d8",
+        version="d6a29134401d7caae1b8fca9c452c8eb92af60c5",
     )
