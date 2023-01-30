@@ -290,7 +290,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
         ESP_LOGD("SettingsChanged", "fan hp:AUTO --> ha:AUTO");
     }
-    ESP_LOGI("SettingsChanged", "Fan mode: %i", this->fan_mode);
+    ESP_LOGI("SettingsChanged", "Fan mode: %u", this->fan_mode);
 
 
     if (strcmp(currentSettings.vane, "1") == 0) {
