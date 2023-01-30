@@ -170,32 +170,39 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
             case climate::CLIMATE_FAN_OFF:
                 hp->setPowerSetting("OFF");
                 updated = true;
+                ESP_LOGD(TAG, "Fan OFF --> OFF");
                 break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
                 updated = true;
+                ESP_LOGD(TAG, "Fan LOW --> QUIET");
                 break;
             case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
                 updated = true;
+                ESP_LOGD(TAG, "Fan MEDIUM --> 1");
                 break;
             case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
                 updated = true;
+                ESP_LOGD(TAG, "Fan HIGH --> 2");
                 break;
             case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
                 updated = true;
+                ESP_LOGD(TAG, "Fan FOCUS --> 3");
                 break;
             case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
                 updated = true;
+                ESP_LOGD(TAG, "Fan DIFFUSE --> 4");
                 break;
             case climate::CLIMATE_FAN_ON:
             case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
                 updated = true;
+                ESP_LOGD(TAG, "Fan default --> AUTO");
                 break;
         }
     }
