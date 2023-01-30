@@ -330,9 +330,15 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     if (strcmp(currentSettings.vane, "1") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_BOTH;
         ESP_LOGD("SettingsChanged", "vane hp:1 --> ha:BOTH");
+    } else if (strcmp(currentSettings.vane, "2") == 0) {
+        this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
+        ESP_LOGD("SettingsChanged", "vane hp:2 --> ha:VERTICAL");
     } else if (strcmp(currentSettings.vane, "3") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
         ESP_LOGD("SettingsChanged", "vane hp:3 --> ha:VERTICAL");
+    } else if (strcmp(currentSettings.vane, "4") == 0) {
+        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+        ESP_LOGD("SettingsChanged", "vane hp:4 --> ha:HORIZONTAL");
     } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
         ESP_LOGD("SettingsChanged", "vane hp:5 --> ha:HORIZONTAL");
