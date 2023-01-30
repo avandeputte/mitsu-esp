@@ -40,9 +40,9 @@ void MitsubishiHeatPump::update() {
     //this->dump_config();
     this->hp->sync();
 
-    this->hpSettingsChanged();
-    heatpumpStatus currentStatus = hp->getStatus();
-    this->hpStatusChanged(currentStatus);
+    //this->hpSettingsChanged();
+    //heatpumpStatus currentStatus = hp->getStatus();
+    //this->hpStatusChanged(currentStatus);
 
 }
 
