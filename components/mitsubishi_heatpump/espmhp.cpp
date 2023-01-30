@@ -140,9 +140,12 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         updated = true;
     }
     if (call.get_fan_mode().has_value()) {
-        ESP_LOGD("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
+            case climate::CLIMATE_FAN_OFF:
+                hp->setPowerSetting("OFF");
+                updated = true;
+                break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
                 updated = true;
@@ -177,9 +180,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     }
 
     if (call.get_swing_mode().has_value()) {
-        ESP_LOGD("control", "control - requested swing mode is %s",
-                *call.get_swing_mode());
-
+ 
         this->swing_mode = *call.get_swing_mode();
         switch(*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_OFF:
@@ -203,7 +204,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 ESP_LOGD("control", "Vane ha:VERTICAL --> hp:3");
                 break;
             default:
-                ESP_LOGW(TAG, "control - received unsupported swing mode request.");
+                ESP_LOGW("control", "control - received unsupported swing mode request.");
 
         }
     }
@@ -232,12 +233,6 @@ void MitsubishiHeatPump::hpSettingsChanged() {
         return;
     }
 
-    /*
-     * ************ HANDLE POWER AND MODE CHANGES ***********
-     * https://github.com/geoffdavis/HeatPump/blob/stream/src/HeatPump.h#L125
-     * const char* POWER_MAP[2]       = {"OFF", "ON"};
-     * const char* MODE_MAP[5]        = {"HEAT", "DRY", "COOL", "FAN", "AUTO"};
-     */
     if (strcmp(currentSettings.power, "ON") == 0) {
         if (strcmp(currentSettings.mode, "HEAT") == 0) {
             this->mode = climate::CLIMATE_MODE_HEAT;
