@@ -80,7 +80,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
  * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
  */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGV(TAG, "Control called.");
+    ESP_LOGD(TAG, "Control called.");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -338,7 +338,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
         ESP_LOGD("control", "Setting swing 3 --> VERTICAL");
     } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-        ESP_LOGD("control", "Setting swing 5 --> VERTICAL");
+        ESP_LOGD("control", "Setting swing 5 --> HORIZONTAL");
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
         ESP_LOGD("control", "Setting swing ? --> OFF");
