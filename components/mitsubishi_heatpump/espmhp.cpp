@@ -62,7 +62,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
 // Implement control of a MitsubishiHeatPump.
 // Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGI("control", "Received a control request from HA");
+    ESP_LOGI("control", "Received control request from HA");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
