@@ -318,22 +318,22 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_LOW;
-        ESP_LOGD("control", "Setting fan QUIET --> LOW")
+        ESP_LOGD("control", "Setting fan QUIET --> LOW");
     } else if (strcmp(currentSettings.fan, "1") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
-        ESP_LOGD("control", "Setting fan 1 --> MEDIUM")
+        ESP_LOGD("control", "Setting fan 1 --> MEDIUM");
     } else if (strcmp(currentSettings.fan, "2") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_HIGH;
-        ESP_LOGD("control", "Setting fan 2 --> HIGH")
+        ESP_LOGD("control", "Setting fan 2 --> HIGH");
     } else if (strcmp(currentSettings.fan, "3") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_FOCUS;
-        ESP_LOGD("control", "Setting fan 3 --> FOCUS")
+        ESP_LOGD("control", "Setting fan 3 --> FOCUS");
     } else if (strcmp(currentSettings.fan, "4") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
-        ESP_LOGD("control", "Setting fan 4 --> DIFFUSE")
+        ESP_LOGD("control", "Setting fan 4 --> DIFFUSE");
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
-        ESP_LOGD("control", "Setting fan ? --> AUTO")
+        ESP_LOGD("control", "Setting fan ? --> AUTO");
     }
     ESP_LOGI(TAG, "Fan mode: %i", this->fan_mode);
 
@@ -342,16 +342,16 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      */
     if (strcmp(currentSettings.vane, "1") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_BOTH;
-        ESP_LOGD("control", "Setting swing 1 --> BOTH")
+        ESP_LOGD("control", "Setting swing 1 --> BOTH");
     } else if (strcmp(currentSettings.vane, "3") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-        ESP_LOGD("control", "Setting swing 3 --> VERTICAL")
+        ESP_LOGD("control", "Setting swing 3 --> VERTICAL");
     } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-        ESP_LOGD("control", "Setting swing 5 --> VERTICAL")
+        ESP_LOGD("control", "Setting swing 5 --> VERTICAL");
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
-        ESP_LOGD("control", "Setting swing ? --> OFF")
+        ESP_LOGD("control", "Setting swing ? --> OFF");
 
     }
     ESP_LOGI(TAG, "Swing mode: %i", this->swing_mode);
