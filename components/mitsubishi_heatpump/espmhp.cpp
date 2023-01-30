@@ -1,21 +1,3 @@
-/**
- * espmhp.cpp
- *
- * Implementation of esphome-mitsubishiheatpump
- *
- * Author: Geoff Davis <geoff@geoffdavis.com>
- * Author: Phil Genera @pgenera on Github.
- * Author: Barry Loong @loongyh on GitHub.
- * Author: @am-io on Github.
- * Author: @nao-pon on Github.
- * Author: Simon Knopp @sijk on Github
- * Last Updated: 2021-05-27
- * License: BSD
- *
- * Requirements:
- * - https://github.com/SwiCago/HeatPump
- * - ESPHome 1.18.0 or greater
- */
 
 #include "espmhp.h"
 using namespace esphome;
