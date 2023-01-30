@@ -98,7 +98,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
  * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
  */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGD(TAG, "Control called.");
+    ESP_LOGI(TAG, "Received a control request from HA");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -191,28 +191,34 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
+                ESP_LOGD("control", "Setting HP fan to QUIET")
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
+                ESP_LOGD("control", "Setting HP fan to 1")
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
+                ESP_LOGD("control", "Setting HP fan to 2")
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
+                ESP_LOGD("control", "Setting HP fan to 3")
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
+                ESP_LOGD("control", "Setting HP fan to 4")
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_ON:
             case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
+                ESP_LOGD("control", "Setting HP fan to AUTO")
                 updated = true;
                 break;
         }
@@ -227,18 +233,22 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         switch(*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_OFF:
                 hp->setVaneSetting("AUTO");
+                ESP_LOGD("control", "Setting HP vane to OFF --> AUTO")
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_BOTH:
                 hp->setVaneSetting("1");
+                ESP_LOGD("control", "Setting HP vane to Both --> 1")
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_HORIZONTAL:
                 hp->setVaneSetting("5");
+                ESP_LOGD("control", "Setting HP vane to HORIZONTAL --> 5")
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
                 hp->setVaneSetting("3");
+                ESP_LOGD("control", "Setting HP vane to VERTICAL --> 3")
                 updated = true;
                 break;
             default:
@@ -255,6 +265,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 }
 
 void MitsubishiHeatPump::hpSettingsChanged() {
+    ESP_LOGI(TAG, "Received a setting change from HP.");
     heatpumpSettings currentSettings = hp->getSettings();
 
     if (currentSettings.power == NULL) {
@@ -325,16 +336,22 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_LOW;
+        ESP_LOGD("control", "Setting fan QUIET --> LOW")
     } else if (strcmp(currentSettings.fan, "1") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
+        this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
+        ESP_LOGD("control", "Setting fan 1 --> MEDIUM")
     } else if (strcmp(currentSettings.fan, "2") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_HIGH;
+        this->fan_mode = climate::CLIMATE_FAN_HIGH;
+        ESP_LOGD("control", "Setting fan 2 --> HIGH")
     } else if (strcmp(currentSettings.fan, "3") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_FOCUS;
+        this->fan_mode = climate::CLIMATE_FAN_FOCUS;
+        ESP_LOGD("control", "Setting fan 3 --> FOCUS")
     } else if (strcmp(currentSettings.fan, "4") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
+        this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
+        ESP_LOGD("control", "Setting fan 4 --> DIFFUSE")
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
+        ESP_LOGD("control", "Setting fan ? --> AUTO")
     }
     ESP_LOGI(TAG, "Fan mode: %i", this->fan_mode);
 
@@ -343,12 +360,17 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      */
     if (strcmp(currentSettings.vane, "1") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_BOTH;
+        ESP_LOGD("control", "Setting swing 1 --> BOTH")
     } else if (strcmp(currentSettings.vane, "3") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
+        ESP_LOGD("control", "Setting swing 3 --> VERTICAL")
     } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+        ESP_LOGD("control", "Setting swing 5 --> VERTICAL")
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
+        ESP_LOGD("control", "Setting swing ? --> OFF")
+
     }
     ESP_LOGI(TAG, "Swing mode: %i", this->swing_mode);
 
@@ -370,6 +392,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
  * Report changes in the current temperature sensed by the HeatPump.
  */
 void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
+    ESP_LOGD(TAG, "Received a status change from HP.");
     this->current_temperature = currentStatus.roomTemperature;
     switch (this->mode) {
         case climate::CLIMATE_MODE_HEAT:
