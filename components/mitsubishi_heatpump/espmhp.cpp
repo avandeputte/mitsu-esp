@@ -167,42 +167,35 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         ESP_LOGV("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
-            case climate::CLIMATE_FAN_OFF:
-                hp->setPowerSetting("OFF");
-                updated = true;
-                ESP_LOGD("control", "Fan OFF --> OFF");
-                break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
                 updated = true;
-                ESP_LOGD("control", "Fan LOW --> QUIET");
+                ESP_LOGD("control", "Fan ha:LOW --> hp:QUIET");
                 break;
             case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
                 updated = true;
-                ESP_LOGD("control", "Fan MEDIUM --> 1");
+                ESP_LOGD("control", "Fan ha:MEDIUM --> hp:1");
                 break;
             case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
                 updated = true;
-                ESP_LOGD("control", "Fan HIGH --> 2");
+                ESP_LOGD("control", "Fan ha:HIGH --> hp:2");
                 break;
             case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
                 updated = true;
-                ESP_LOGD("control", "Fan FOCUS --> 3");
+                ESP_LOGD("control", "Fan ha:FOCUS --> hp:3");
                 break;
             case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
                 updated = true;
-                ESP_LOGD("control", "Fan DIFFUSE --> 4");
+                ESP_LOGD("control", "Fan ha:DIFFUSE --> hp:4");
                 break;
-            case climate::CLIMATE_FAN_ON:
-            case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
                 updated = true;
-                ESP_LOGD("control", "Fan default --> AUTO");
+                ESP_LOGD("control", "Fan ha:default --> hp:AUTO");
                 break;
         }
     }
@@ -217,18 +210,22 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
             case climate::CLIMATE_SWING_OFF:
                 hp->setVaneSetting("AUTO");
                 updated = true;
+                ESP_LOGD("control", "Vane ha:OFF --> hp:AUTO");
                 break;
             case climate::CLIMATE_SWING_BOTH:
                 hp->setVaneSetting("1");
                 updated = true;
+                ESP_LOGD("control", "Vane ha:BOTH --> hp:1");
                 break;
             case climate::CLIMATE_SWING_HORIZONTAL:
                 hp->setVaneSetting("5");
                 updated = true;
+                ESP_LOGD("control", "Vane ha:HORIZONTAL --> hp:5");
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
                 hp->setVaneSetting("3");
                 updated = true;
+                ESP_LOGD("control", "Vane ha:VERTICAL --> hp:3");
                 break;
             default:
                 ESP_LOGW(TAG, "control - received unsupported swing mode request.");
@@ -308,47 +305,40 @@ void MitsubishiHeatPump::hpSettingsChanged() {
 
     ESP_LOGI("SettingsChanged", "Climate mode: %i", this->mode);
 
-    /*
-     * ******* HANDLE FAN CHANGES ********
-     *
-     * const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
-     */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_LOW;
-        ESP_LOGD("SettingsChanged", "Setting fan QUIET --> LOW");
+        ESP_LOGD("SettingsChanged", "fan hp:QUIET --> ha:LOW");
     } else if (strcmp(currentSettings.fan, "1") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
-        ESP_LOGD("SettingsChanged", "Setting fan 1 --> MEDIUM");
+        ESP_LOGD("SettingsChanged", "fan hp:1 --> ha:MEDIUM");
     } else if (strcmp(currentSettings.fan, "2") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_HIGH;
-        ESP_LOGD("SettingsChanged", "Setting fan 2 --> HIGH");
+        ESP_LOGD("SettingsChanged", "fan hp:2 --> ha:HIGH");
     } else if (strcmp(currentSettings.fan, "3") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_FOCUS;
-        ESP_LOGD("SettingsChanged", "Setting fan 3 --> FOCUS");
+        ESP_LOGD("SettingsChanged", "fan hp:3 --> ha:FOCUS");
     } else if (strcmp(currentSettings.fan, "4") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
-        ESP_LOGD("SettingsChanged", "Setting fan 4 --> DIFFUSE");
+        ESP_LOGD("SettingsChanged", "fan hp:4 --> ha:DIFFUSE");
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
-        ESP_LOGD("SettingsChanged", "Setting fan ? --> AUTO");
+        ESP_LOGD("SettingsChanged", "fan hp:AUTO --> ha:AUTO");
     }
     ESP_LOGI("SettingsChanged", "Fan mode: %i", this->fan_mode);
 
-    /* ******** HANDLE MITSUBISHI VANE CHANGES ********
-     * const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
-     */
+
     if (strcmp(currentSettings.vane, "1") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_BOTH;
-        ESP_LOGD("SettingsChanged", "Setting swing 1 --> BOTH");
+        ESP_LOGD("SettingsChanged", "vane hp:1 --> ha:BOTH");
     } else if (strcmp(currentSettings.vane, "3") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-        ESP_LOGD("SettingsChanged", "Setting swing 3 --> VERTICAL");
+        ESP_LOGD("SettingsChanged", "vane hp:3 --> ha:VERTICAL");
     } else if (strcmp(currentSettings.vane, "5") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-        ESP_LOGD("SettingsChanged", "Setting swing 5 --> HORIZONTAL");
+        ESP_LOGD("SettingsChanged", "vane hp:5 --> ha:HORIZONTAL");
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
-        ESP_LOGD("SettingsChanged", "Setting swing ? --> OFF");
+        ESP_LOGD("SettingsChanged", "vane hp:AUTO --> ha:OFF");
 
     }
     ESP_LOGI("SettingsChanged", "Swing mode: %i", this->swing_mode);
