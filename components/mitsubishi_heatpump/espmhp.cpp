@@ -80,7 +80,7 @@ climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
  * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
  */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGI(TAG, "Received a control request from HA");
+    ESP_LOGV(TAG, "Control called.");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -153,7 +153,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     }
 
     if (has_temp){
-        ESP_LOGD(
+        ESP_LOGV(
             "control", "Sending target temp: %.1f",
             *call.get_target_temperature()
         );
@@ -164,7 +164,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 
     //const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
     if (call.get_fan_mode().has_value()) {
-        ESP_LOGD("control", "Requested fan mode is %s", *call.get_fan_mode());
+        ESP_LOGV("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
             case climate::CLIMATE_FAN_OFF:
@@ -173,34 +173,28 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
-                ESP_LOGD("control", "Setting HP fan to QUIET");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
-                ESP_LOGD("control", "Setting HP fan to 1");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
-                ESP_LOGD("control", "Setting HP fan to 2");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
-                ESP_LOGD("control", "Setting HP fan to 3");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
-                ESP_LOGD("control", "Setting HP fan to 4");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_ON:
             case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
-                ESP_LOGD("control", "Setting HP fan to AUTO");
                 updated = true;
                 break;
         }
@@ -208,29 +202,25 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 
     //const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
     if (call.get_swing_mode().has_value()) {
-        ESP_LOGD(TAG, "control - requested swing mode is %s",
+        ESP_LOGV(TAG, "control - requested swing mode is %s",
                 *call.get_swing_mode());
 
         this->swing_mode = *call.get_swing_mode();
         switch(*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_OFF:
                 hp->setVaneSetting("AUTO");
-                ESP_LOGD("control", "Setting HP vane to OFF --> AUTO");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_BOTH:
-                hp->setVaneSetting("1");
-                ESP_LOGD("control", "Setting HP vane to Both --> 1");
+                hp->setVaneSetting("SWING");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_HORIZONTAL:
-                hp->setVaneSetting("5");
-                ESP_LOGD("control", "Setting HP vane to HORIZONTAL --> 5");
+                hp->setVaneSetting("2");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
-                hp->setVaneSetting("3");
-                ESP_LOGD("control", "Setting HP vane to VERTICAL --> 3");
+                hp->setVaneSetting("5");
                 updated = true;
                 break;
             default:
