@@ -173,34 +173,34 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
                 break;
             case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("QUIET");
-                ESP_LOGD("control", "Setting HP fan to QUIET")
+                ESP_LOGD("control", "Setting HP fan to QUIET");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("1");
-                ESP_LOGD("control", "Setting HP fan to 1")
+                ESP_LOGD("control", "Setting HP fan to 1");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("2");
-                ESP_LOGD("control", "Setting HP fan to 2")
+                ESP_LOGD("control", "Setting HP fan to 2");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_FOCUS:
                 hp->setFanSpeed("3");
-                ESP_LOGD("control", "Setting HP fan to 3")
+                ESP_LOGD("control", "Setting HP fan to 3");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("4");
-                ESP_LOGD("control", "Setting HP fan to 4")
+                ESP_LOGD("control", "Setting HP fan to 4");
                 updated = true;
                 break;
             case climate::CLIMATE_FAN_ON:
             case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
-                ESP_LOGD("control", "Setting HP fan to AUTO")
+                ESP_LOGD("control", "Setting HP fan to AUTO");
                 updated = true;
                 break;
         }
@@ -215,22 +215,22 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         switch(*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_OFF:
                 hp->setVaneSetting("AUTO");
-                ESP_LOGD("control", "Setting HP vane to OFF --> AUTO")
+                ESP_LOGD("control", "Setting HP vane to OFF --> AUTO");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_BOTH:
                 hp->setVaneSetting("1");
-                ESP_LOGD("control", "Setting HP vane to Both --> 1")
+                ESP_LOGD("control", "Setting HP vane to Both --> 1");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_HORIZONTAL:
                 hp->setVaneSetting("5");
-                ESP_LOGD("control", "Setting HP vane to HORIZONTAL --> 5")
+                ESP_LOGD("control", "Setting HP vane to HORIZONTAL --> 5");
                 updated = true;
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
                 hp->setVaneSetting("3");
-                ESP_LOGD("control", "Setting HP vane to VERTICAL --> 3")
+                ESP_LOGD("control", "Setting HP vane to VERTICAL --> 3");
                 updated = true;
                 break;
             default:
