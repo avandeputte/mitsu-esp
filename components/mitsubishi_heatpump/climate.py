@@ -82,8 +82,6 @@ CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
                     cv.ensure_list(climate.validate_climate_mode),
                 cv.Optional(CONF_FAN_MODE, default=DEFAULT_FAN_MODES):
                     cv.ensure_list(climate.validate_climate_fan_mode),
-                cv.Optional(CONF_FAN_MODE2, default=DEFAULT_FAN_MODES2):
-                    cv.ensure_list(climate.validate_climate_fan_mode2),
                 cv.Optional(CONF_SWING_MODE, default=DEFAULT_SWING_MODES):
                     cv.ensure_list(climate.validate_climate_swing_mode),
             }
