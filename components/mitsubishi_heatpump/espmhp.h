@@ -99,7 +99,7 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         // Use the temperature from an external sensor. Use
         // set_remote_temp(0) to switch back to the internal sensor.
         void set_remote_temperature(float);
-
+        void set_fan_spee(esphome::select::Select *fan_speed);
         void set_vertical_vane_select(esphome::select::Select *vertical_vane_select);
         void set_horizontal_vane_select(esphome::select::Select *horizontal_vane_select);
 
@@ -145,8 +145,7 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
             nullptr;  // Select to store manual position of vertical swing
         esphome::select::Select *horizontal_vane_select_ =
             nullptr;  // Select to store manual position of horizontal swing
-
-        // When received command to change the vane positions
+        
         void on_horizontal_swing_change(const std::string &swing);
         void on_vertical_swing_change(const std::string &swing);
 
