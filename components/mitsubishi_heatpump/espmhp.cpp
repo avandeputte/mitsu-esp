@@ -1,3 +1,21 @@
+/**
+ * espmhp.cpp
+ *
+ * Implementation of esphome-mitsubishiheatpump
+ *
+ * Author: Geoff Davis <geoff@geoffdavis.com>
+ * Author: Phil Genera @pgenera on Github.
+ * Author: Barry Loong @loongyh on GitHub.
+ * Author: @am-io on Github.
+ * Author: @nao-pon on Github.
+ * Author: Simon Knopp @sijk on Github
+ * Last Updated: 2021-05-27
+ * License: BSD
+ *
+ * Requirements:
+ * - https://github.com/SwiCago/HeatPump
+ * - ESPHome 1.18.0 or greater
+ */
 
 #include "espmhp.h"
 using namespace esphome;
@@ -35,28 +53,176 @@ void MitsubishiHeatPump::check_logger_conflict_() {
 #endif
 }
 
+void MitsubishiHeatPump::banner() {
+    ESP_LOGI(TAG, "ESPHome MitsubishiHeatPump version %s",
+            ESPMHP_VERSION);
+}
+
 void MitsubishiHeatPump::update() {
     // This will be called every "update_interval" milliseconds.
+    //this->dump_config();
     this->hp->sync();
+#ifndef USE_CALLBACKS
+    this->hpSettingsChanged();
+    heatpumpStatus currentStatus = hp->getStatus();
+    this->hpStatusChanged(currentStatus);
+#endif
 }
 
 void MitsubishiHeatPump::set_baud_rate(int baud) {
     this->baud_ = baud;
 }
 
+void MitsubishiHeatPump::set_rx_pin(int rx_pin) {
+    this->rx_pin_ = rx_pin;
+}
+
+void MitsubishiHeatPump::set_tx_pin(int tx_pin) {
+    this->tx_pin_ = tx_pin;
+}
+
+/**
+ * Get our supported traits.
+ *
+ * Note:
+ * Many of the following traits are only available in the 1.5.0 dev train of
+ * ESPHome, particularly the Dry operation mode, and several of the fan modes.
+ *
+ * Returns:
+ *   This class' supported climate::ClimateTraits.
+ */
 climate::ClimateTraits MitsubishiHeatPump::traits() {
     return traits_;
 }
 
+/**
+ * Modify our supported traits.
+ *
+ * Returns:
+ *   A reference to this class' supported climate::ClimateTraits.
+ */
 climate::ClimateTraits& MitsubishiHeatPump::config_traits() {
     return traits_;
 }
 
+void MitsubishiHeatPump::update_swing_horizontal(const std::string &swing) {
+    this->horizontal_swing_state_ = swing;
 
-// Implement control of a MitsubishiHeatPump.
-// Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
+    if (this->horizontal_vane_select_ != nullptr &&
+        this->horizontal_vane_select_->state != this->horizontal_swing_state_) {
+        this->horizontal_vane_select_->publish_state(
+            this->horizontal_swing_state_);  // Set current horizontal swing
+                                             // position
+    }
+}
+
+void MitsubishiHeatPump::update_swing_vertical(const std::string &swing) {
+    this->vertical_swing_state_ = swing;
+
+    if (this->vertical_vane_select_ != nullptr &&
+        this->vertical_vane_select_->state != this->vertical_swing_state_) {
+        this->vertical_vane_select_->publish_state(
+            this->vertical_swing_state_);  // Set current vertical swing position
+    }
+}
+
+void MitsubishiHeatPump::set_vertical_vane_select(
+    select::Select *vertical_vane_select) {
+    this->vertical_vane_select_ = vertical_vane_select;
+    this->vertical_vane_select_->add_on_state_callback(
+        [this](const std::string &value, size_t index) {
+            if (value == this->vertical_swing_state_) return;
+            this->on_vertical_swing_change(value);
+        });
+}
+
+void MitsubishiHeatPump::set_horizontal_vane_select(
+    select::Select *horizontal_vane_select) {
+      this->horizontal_vane_select_ = horizontal_vane_select;
+      this->horizontal_vane_select_->add_on_state_callback(
+          [this](const std::string &value, size_t index) {
+              if (value == this->horizontal_swing_state_) return;
+              this->on_horizontal_swing_change(value);
+          });
+}
+
+void MitsubishiHeatPump::on_vertical_swing_change(const std::string &swing) {
+    ESP_LOGD(TAG, "Setting vertical swing position");
+    bool updated = false;
+
+    if (swing == "swing") {
+        hp->setVaneSetting("SWING");
+        updated = true;
+    } else if (swing == "auto") {
+        hp->setVaneSetting("AUTO");
+        updated = true;
+    } else if (swing == "up") {
+        hp->setVaneSetting("1");
+        updated = true;
+    } else if (swing == "up_center") {
+        hp->setVaneSetting("2");
+        updated = true;
+    } else if (swing == "center") {
+        hp->setVaneSetting("3");
+        updated = true;
+    } else if (swing == "down_center") {
+        hp->setVaneSetting("4");
+        updated = true;
+    } else if (swing == "down") {
+        hp->setVaneSetting("5");
+        updated = true;
+    } else {
+        ESP_LOGW(TAG, "Invalid vertical vane position %s", swing);
+    }
+
+    ESP_LOGD(TAG, "Vertical vane - Was HeatPump updated? %s", YESNO(updated));
+
+    // and the heat pump:
+    hp->update();
+}
+
+void MitsubishiHeatPump::on_horizontal_swing_change(const std::string &swing) {
+    ESP_LOGD(TAG, "Setting horizontal swing position");
+    bool updated = false;
+
+    if (swing == "swing") {
+        hp->setWideVaneSetting("SWING");
+        updated = true;
+    } else if (swing == "auto") {
+        hp->setWideVaneSetting("<>");
+        updated = true;
+    } else if (swing == "left") {
+        hp->setWideVaneSetting("<<");
+        updated = true;
+    } else if (swing == "left_center") {
+        hp->setWideVaneSetting("<");
+        updated = true;
+    } else if (swing == "center") {
+        hp->setWideVaneSetting("|");
+        updated = true;
+    } else if (swing == "right_center") {
+        hp->setWideVaneSetting(">");
+        updated = true;
+    } else if (swing == "right") {
+        hp->setWideVaneSetting(">>");
+        updated = true;
+    } else {
+        ESP_LOGW(TAG, "Invalid horizontal vane position %s", swing);
+    }
+
+    ESP_LOGD(TAG, "Horizontal vane - Was HeatPump updated? %s", YESNO(updated));
+
+    // and the heat pump:
+    hp->update();
+ }
+
+/**
+ * Implement control of a MitsubishiHeatPump.
+ *
+ * Maps HomeAssistant/ESPHome modes to Mitsubishi modes.
+ */
 void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
-    ESP_LOGI("control", "Received control request from HA");
+    ESP_LOGV(TAG, "Control called.");
 
     bool updated = false;
     bool has_mode = call.get_mode().has_value();
@@ -68,6 +234,7 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
         case climate::CLIMATE_MODE_COOL:
             hp->setModeSetting("COOL");
             hp->setPowerSetting("ON");
+
             if (has_mode){
                 if (cool_setpoint.has_value() && !has_temp) {
                     hp->setTemperature(cool_setpoint.value());
@@ -128,81 +295,86 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
     }
 
     if (has_temp){
-        ESP_LOGI("control", "Sending target temp: %.1f",*call.get_target_temperature());
+        ESP_LOGV(
+            "control", "Sending target temp: %.1f",
+            *call.get_target_temperature()
+        );
         hp->setTemperature(*call.get_target_temperature());
         this->target_temperature = *call.get_target_temperature();
         updated = true;
     }
+
+    //const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
     if (call.get_fan_mode().has_value()) {
+        ESP_LOGV("control", "Requested fan mode is %s", *call.get_fan_mode());
         this->fan_mode = *call.get_fan_mode();
         switch(*call.get_fan_mode()) {
             case climate::CLIMATE_FAN_OFF:
                 hp->setPowerSetting("OFF");
                 updated = true;
                 break;
-            case climate::CLIMATE_FAN_LOW:
+            case climate::CLIMATE_FAN_DIFFUSE:
                 hp->setFanSpeed("QUIET");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:LOW --> hp:QUIET");
                 break;
-            case climate::CLIMATE_FAN_MEDIUM:
+            case climate::CLIMATE_FAN_LOW:
                 hp->setFanSpeed("1");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:MEDIUM --> hp:1");
                 break;
-            case climate::CLIMATE_FAN_HIGH:
+            case climate::CLIMATE_FAN_MEDIUM:
                 hp->setFanSpeed("2");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:HIGH --> hp:2");
                 break;
-            case climate::CLIMATE_FAN_FOCUS:
+            case climate::CLIMATE_FAN_MIDDLE:
                 hp->setFanSpeed("3");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:FOCUS --> hp:3");
                 break;
-            case climate::CLIMATE_FAN_DIFFUSE:
+            case climate::CLIMATE_FAN_HIGH:
                 hp->setFanSpeed("4");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:DIFFUSE --> hp:4");
                 break;
+            case climate::CLIMATE_FAN_ON:
+            case climate::CLIMATE_FAN_AUTO:
             default:
                 hp->setFanSpeed("AUTO");
                 updated = true;
-                ESP_LOGI("control", "Fan ha:default --> hp:AUTO");
                 break;
         }
     }
 
+    //const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
     if (call.get_swing_mode().has_value()) {
- 
+        ESP_LOGV(TAG, "control - requested swing mode is %s",
+                *call.get_swing_mode());
+
         this->swing_mode = *call.get_swing_mode();
         switch(*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_OFF:
                 hp->setVaneSetting("AUTO");
+                hp->setWideVaneSetting("|");
                 updated = true;
-                ESP_LOGI("control", "Vane ha:OFF --> hp:AUTO");
-                break;
-            case climate::CLIMATE_SWING_BOTH:
-                hp->setVaneSetting("1");
-                updated = true;
-                ESP_LOGI("control", "Vane ha:BOTH --> hp:1");
-                break;
-            case climate::CLIMATE_SWING_HORIZONTAL:
-                hp->setVaneSetting("5");
-                updated = true;
-                ESP_LOGI("control", "Vane ha:HORIZONTAL --> hp:5");
                 break;
             case climate::CLIMATE_SWING_VERTICAL:
-                hp->setVaneSetting("3");
+                hp->setVaneSetting("SWING");
+                hp->setWideVaneSetting("|");
                 updated = true;
-                ESP_LOGI("control", "Vane ha:VERTICAL --> hp:3");
+                break;
+            case climate::CLIMATE_SWING_HORIZONTAL:
+                hp->setVaneSetting("3");
+                hp->setWideVaneSetting("SWING");
+                updated = true;
+                break;
+            case climate::CLIMATE_SWING_BOTH:
+                hp->setVaneSetting("SWING");
+                hp->setWideVaneSetting("SWING");
+                updated = true;
                 break;
             default:
-                ESP_LOGW("control", "control - received unsupported swing mode request.");
+                ESP_LOGW(TAG, "control - received unsupported swing mode request.");
 
         }
     }
-    ESP_LOGD("control", "Was HeatPump updated? %s", YESNO(updated));
+    ESP_LOGD(TAG, "control - Was HeatPump updated? %s", YESNO(updated));
 
     // send the update back to esphome:
     this->publish_state();
@@ -211,7 +383,6 @@ void MitsubishiHeatPump::control(const climate::ClimateCall &call) {
 }
 
 void MitsubishiHeatPump::hpSettingsChanged() {
-    ESP_LOGI("SettingsChanged", "Received a setting change from HP.");
     heatpumpSettings currentSettings = hp->getSettings();
 
     if (currentSettings.power == NULL) {
@@ -222,11 +393,17 @@ void MitsubishiHeatPump::hpSettingsChanged() {
          * to punt on the update. Likely not an issue when run in callback
          * mode, but that isn't working right yet.
          */
-        ESP_LOGD("SettingsChanged", "Waiting for HeatPump to read the settings the first time.");
+        ESP_LOGW(TAG, "Waiting for HeatPump to read the settings the first time.");
         esphome::delay(10);
         return;
     }
 
+    /*
+     * ************ HANDLE POWER AND MODE CHANGES ***********
+     * https://github.com/geoffdavis/HeatPump/blob/stream/src/HeatPump.h#L125
+     * const char* POWER_MAP[2]       = {"OFF", "ON"};
+     * const char* MODE_MAP[5]        = {"HEAT", "DRY", "COOL", "FAN", "AUTO"};
+     */
     if (strcmp(currentSettings.power, "ON") == 0) {
         if (strcmp(currentSettings.mode, "HEAT") == 0) {
             this->mode = climate::CLIMATE_MODE_HEAT;
@@ -256,57 +433,94 @@ void MitsubishiHeatPump::hpSettingsChanged() {
             }
             this->action = climate::CLIMATE_ACTION_IDLE;
         } else {
-            ESP_LOGW("SettingsChanged","Unknown climate mode value %s received from HeatPump",currentSettings.mode);
+            ESP_LOGW(
+                    TAG,
+                    "Unknown climate mode value %s received from HeatPump",
+                    currentSettings.mode
+            );
         }
     } else {
         this->mode = climate::CLIMATE_MODE_OFF;
         this->action = climate::CLIMATE_ACTION_OFF;
     }
 
+    ESP_LOGI(TAG, "Climate mode is: %i", this->mode);
+
+    /*
+     * ******* HANDLE FAN CHANGES ********
+     *
+     * const char* FAN_MAP[6]         = {"AUTO", "QUIET", "1", "2", "3", "4"};
+     */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
-        this->fan_mode = climate::CLIMATE_FAN_LOW;
-        ESP_LOGI("SettingsChanged", "fan hp:QUIET --> ha:LOW");
-    } else if (strcmp(currentSettings.fan, "1") == 0) {
-        this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
-        ESP_LOGI("SettingsChanged", "fan hp:1 --> ha:MEDIUM");
-    } else if (strcmp(currentSettings.fan, "2") == 0) {
-        this->fan_mode = climate::CLIMATE_FAN_HIGH;
-        ESP_LOGI("SettingsChanged", "fan hp:2 --> ha:HIGH");
-    } else if (strcmp(currentSettings.fan, "3") == 0) {
-        this->fan_mode = climate::CLIMATE_FAN_FOCUS;
-        ESP_LOGI("SettingsChanged", "fan hp:3 --> ha:FOCUS");
-    } else if (strcmp(currentSettings.fan, "4") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
-        ESP_LOGI("SettingsChanged", "fan hp:4 --> ha:DIFFUSE");
+    } else if (strcmp(currentSettings.fan, "1") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_LOW;
+    } else if (strcmp(currentSettings.fan, "2") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
+    } else if (strcmp(currentSettings.fan, "3") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_MIDDLE;
+    } else if (strcmp(currentSettings.fan, "4") == 0) {
+            this->fan_mode = climate::CLIMATE_FAN_HIGH;
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
-        ESP_LOGI("SettingsChanged", "fan hp:AUTO --> ha:AUTO");
     }
+    ESP_LOGI(TAG, "Fan mode is: %i", this->fan_mode);
 
-    if (strcmp(currentSettings.vane, "1") == 0) {
+    /* ******** HANDLE MITSUBISHI VANE CHANGES ********
+     * const char* VANE_MAP[7]        = {"AUTO", "1", "2", "3", "4", "5", "SWING"};
+     */
+    if (strcmp(currentSettings.vane, "SWING") == 0 &&
+        strcmp(currentSettings.wideVane, "SWING") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_BOTH;
-        ESP_LOGI("SettingsChanged", "vane hp:1 --> ha:BOTH");
-    } else if (strcmp(currentSettings.vane, "2") == 0) {
+    } else if (strcmp(currentSettings.vane, "SWING") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-        ESP_LOGI("SettingsChanged", "vane hp:2 --> ha:VERTICAL");
-    } else if (strcmp(currentSettings.vane, "3") == 0) {
-        this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-        ESP_LOGI("SettingsChanged", "vane hp:3 --> ha:VERTICAL");
-    } else if (strcmp(currentSettings.vane, "4") == 0) {
+    } else if (strcmp(currentSettings.wideVane, "SWING") == 0) {
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-        ESP_LOGI("SettingsChanged", "vane hp:4 --> ha:HORIZONTAL");
-    } else if (strcmp(currentSettings.vane, "5") == 0) {
-        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-        ESP_LOGI("SettingsChanged", "vane hp:5 --> ha:HORIZONTAL");
     } else {
         this->swing_mode = climate::CLIMATE_SWING_OFF;
-        ESP_LOGI("SettingsChanged", "vane hp:AUTO --> ha:OFF");
     }
+    ESP_LOGI(TAG, "Swing mode is: %i", this->swing_mode);
+    if (strcmp(currentSettings.vane, "SWING") == 0) {
+        this->update_swing_vertical("swing");
+    } else if (strcmp(currentSettings.vane, "AUTO") == 0) {
+        this->update_swing_vertical("auto");
+    } else if (strcmp(currentSettings.vane, "1") == 0) {
+        this->update_swing_vertical("up");
+    } else if (strcmp(currentSettings.vane, "2") == 0) {
+        this->update_swing_vertical("up_center");
+    } else if (strcmp(currentSettings.vane, "3") == 0) {
+        this->update_swing_vertical("center");
+    } else if (strcmp(currentSettings.vane, "4") == 0) {
+        this->update_swing_vertical("down_center");
+    } else if (strcmp(currentSettings.vane, "5") == 0) {
+        this->update_swing_vertical("down");
+    }
+
+    ESP_LOGI(TAG, "Vertical vane mode is: %s", currentSettings.vane);
+
+    if (strcmp(currentSettings.wideVane, "SWING") == 0) {
+        this->update_swing_horizontal("swing");
+    } else if (strcmp(currentSettings.wideVane, "<>") == 0) {
+        this->update_swing_horizontal("auto");
+    } else if (strcmp(currentSettings.wideVane, "<<") == 0) {
+        this->update_swing_horizontal("left");
+    } else if (strcmp(currentSettings.wideVane, "<") == 0) {
+        this->update_swing_horizontal("left_center");
+    } else if (strcmp(currentSettings.wideVane, "|") == 0) {
+        this->update_swing_horizontal("center");
+    } else if (strcmp(currentSettings.wideVane, ">") == 0) {
+        this->update_swing_horizontal("right_center");
+    } else if (strcmp(currentSettings.wideVane, ">>") == 0) {
+        this->update_swing_horizontal("right");
+    }
+
+    ESP_LOGI(TAG, "Horizontal vane mode is: %s", currentSettings.wideVane);
+
     /*
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
      */
     this->target_temperature = currentSettings.temperature;
-    ESP_LOGI("SettingsChanged", "Target temp: %f", this->target_temperature);
+    ESP_LOGI(TAG, "Target temp is: %f", this->target_temperature);
 
     /*
      * ******** Publish state back to ESPHome. ********
@@ -318,20 +532,21 @@ void MitsubishiHeatPump::hpSettingsChanged() {
  * Report changes in the current temperature sensed by the HeatPump.
  */
 void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
-    ESP_LOGI("StatusChanged", "Received a status change from HP.");
     this->current_temperature = currentStatus.roomTemperature;
     switch (this->mode) {
         case climate::CLIMATE_MODE_HEAT:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_HEATING;
-            } else {
+            }
+            else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
         case climate::CLIMATE_MODE_COOL:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_COOLING;
-            } else {
+            }
+            else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
@@ -348,7 +563,8 @@ void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
         case climate::CLIMATE_MODE_DRY:
             if (currentStatus.operating) {
                 this->action = climate::CLIMATE_ACTION_DRYING;
-            } else {
+            }
+            else {
                 this->action = climate::CLIMATE_ACTION_IDLE;
             }
             break;
@@ -363,32 +579,35 @@ void MitsubishiHeatPump::hpStatusChanged(heatpumpStatus currentStatus) {
 }
 
 void MitsubishiHeatPump::set_remote_temperature(float temp) {
-    ESP_LOGD("SetRemoteTemp", "Setting remote temp: %.1f", temp);
+    ESP_LOGD(TAG, "Setting remote temp: %.1f", temp);
     this->hp->setRemoteTemperature(temp);
 }
 
 void MitsubishiHeatPump::setup() {
     // This will be called by App.setup()
     this->banner();
-    ESP_LOGCONFIG("setup", "Setting up UART...");
+    ESP_LOGCONFIG(TAG, "Setting up UART...");
     if (!this->get_hw_serial_()) {
         ESP_LOGCONFIG(
-                "setup",
+                TAG,
                 "No HardwareSerial was provided. "
-                "Software serial ports are unsupported by this component.");
+                "Software serial ports are unsupported by this component."
+        );
         this->mark_failed();
         return;
     }
     this->check_logger_conflict_();
 
-    ESP_LOGCONFIG("setup", "Intializing new HeatPump object.");
+    ESP_LOGCONFIG(TAG, "Intializing new HeatPump object.");
     this->hp = new HeatPump();
     this->current_temperature = NAN;
     this->target_temperature = NAN;
     this->fan_mode = climate::CLIMATE_FAN_OFF;
     this->swing_mode = climate::CLIMATE_SWING_OFF;
+    this->vertical_swing_state_ = "auto";
+    this->horizontal_swing_state_ = "auto";
 
-
+#ifdef USE_CALLBACKS
     hp->setSettingsChangedCallback(
             [this]() {
                 this->hpSettingsChanged();
@@ -400,23 +619,23 @@ void MitsubishiHeatPump::setup() {
                 this->hpStatusChanged(currentStatus);
             }
     );
-
+#endif
 
     ESP_LOGCONFIG(
-            "setup",
+            TAG,
             "hw_serial(%p) is &Serial(%p)? %s",
             this->get_hw_serial_(),
             &Serial,
-            YESNO(this->get_hw_serial_() == &Serial)
+            YESNO((void *)this->get_hw_serial_() == (void *)&Serial)
     );
 
-    ESP_LOGCONFIG("setup", "Calling hp->connect(%p)", this->get_hw_serial_());
-
-    if (hp->connect(this->get_hw_serial_(), this->baud_, -1, -1)) {
+    ESP_LOGCONFIG(TAG, "Calling hp->connect(%p)", this->get_hw_serial_());
+    if (hp->connect(this->get_hw_serial_(), this->baud_, this->rx_pin_, this->tx_pin_)) {
         hp->sync();
-    } else {
+    }
+    else {
         ESP_LOGCONFIG(
-                "setup",
+                TAG,
                 "Connection to HeatPump failed."
                 " Marking MitsubishiHeatPump component as failed."
         );
@@ -456,15 +675,15 @@ optional<float> MitsubishiHeatPump::load(ESPPreferenceObject& storage) {
 
 void MitsubishiHeatPump::dump_config() {
     this->banner();
-    ESP_LOGI("config", "  Supports HEAT: %s", YESNO(true));
-    ESP_LOGI("config", "  Supports COOL: %s", YESNO(true));
-    ESP_LOGI("config", "  Supports AWAY mode: %s", YESNO(false));
-    ESP_LOGI("config", "  Saved heat: %.1f", heat_setpoint.value_or(-1));
-    ESP_LOGI("config", "  Saved cool: %.1f", cool_setpoint.value_or(-1));
-    ESP_LOGI("config", "  Saved auto: %.1f", auto_setpoint.value_or(-1));
+    ESP_LOGI(TAG, "  Supports HEAT: %s", YESNO(true));
+    ESP_LOGI(TAG, "  Supports COOL: %s", YESNO(true));
+    ESP_LOGI(TAG, "  Supports AWAY mode: %s", YESNO(false));
+    ESP_LOGI(TAG, "  Saved heat: %.1f", heat_setpoint.value_or(-1));
+    ESP_LOGI(TAG, "  Saved cool: %.1f", cool_setpoint.value_or(-1));
+    ESP_LOGI(TAG, "  Saved auto: %.1f", auto_setpoint.value_or(-1));
 }
 
 void MitsubishiHeatPump::dump_state() {
     LOG_CLIMATE("", "MitsubishiHeatPump Climate", this);
-    ESP_LOGI("dumpState", "HELLO");
+    ESP_LOGI(TAG, "HELLO");
 }
