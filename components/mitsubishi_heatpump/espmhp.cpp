@@ -125,13 +125,13 @@ void MitsubishiHeatPump::update_swing_vertical(const std::string &swing) {
             this->vertical_swing_state_);  // Set current vertical swing position
     }
 }
-void MitsubishiHeatPump::update_fan_mode(const std::string &mode) {
-    this->fan_mode_state_ = mode;
+void MitsubishiHeatPump::update_fan_mode2(const std::string &mode2) {
+    this->fan_mode2_state_ = mode;
 
-    if (this->fan_mode_select_ != nullptr &&
-        this->fan_mode_select_->state != this->fan_mode_state_) {
-        this->fan_mode_select_->publish_state(
-            this->fan_mode_state_);  // Set current fan speed
+    if (this->fan_mode2_select_ != nullptr &&
+        this->fan_mode2_select_->state != this->fan_mode2_state_) {
+        this->fan_mode2_select_->publish_state(
+            this->fan_mode2_state_);  // Set current fan speed
     }
 }
 void MitsubishiHeatPump::set_vertical_vane_select(
@@ -153,13 +153,13 @@ void MitsubishiHeatPump::set_horizontal_vane_select(
               this->on_horizontal_swing_change(value);
           });
 }
-void MitsubishiHeatPump::set_fan_mode_select(
-    select::Select *fan_mode_select) {
-      this->fan_mode_select_ = fan_mode_select;
-      this->fan_mode_select_->add_on_state_callback(
+void MitsubishiHeatPump::set_fan_mode2_select(
+    select::Select *fan_mode2_select) {
+      this->fan_mode2_select_ = fan_mode2_select;
+      this->fan_mode2_select_->add_on_state_callback(
           [this](const std::string &value, size_t index) {
-              if (value == this->fan_mode_state_) return;
-              this->on_fan_mode_change(value);
+              if (value == this->fan_mode2_state_) return;
+              this->on_fan_mode2_change(value);
           });
 }
 void MitsubishiHeatPump::on_vertical_swing_change(const std::string &swing) {
@@ -232,26 +232,26 @@ void MitsubishiHeatPump::on_horizontal_swing_change(const std::string &swing) {
     hp->update();
  }
 
-void MitsubishiHeatPump::on_fan_mode_change(const std::string &mode) {
+void MitsubishiHeatPump::on_fan_mode2_change(const std::string &mode2) {
     ESP_LOGD(TAG, "Setting fan speed");
     bool updated = false;
 
-    if (mode == "QUIET") {
+    if (mode2 == "QUIET") {
         hp->setFanSpeed("QUIET");
         updated = true;
-    } else if (mode == "AUTO") {
+    } else if (mode2 == "AUTO") {
         hp->setFanSpeed("AUTO");
         updated = true;
-    } else if (mode == "1") {
+    } else if (mode2 == "1") {
         hp->setFanSpeed("1");
         updated = true;
-    } else if (mode == "2") {
+    } else if (mode2 == "2") {
         hp->setFanSpeed("2");
         updated = true;
-    } else if (mode == "3") {
+    } else if (mode2 == "3") {
         hp->setFanSpeed("3");
         updated = true;
-    } else if (mode == "4") {
+    } else if (mode2 == "4") {
         hp->setFanSpeed("4");
         updated = true;       
     } else {
@@ -511,6 +511,8 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
     }
+
+        
     ESP_LOGI(TAG, "Fan mode is: %i", this->fan_mode);
 
     /* ******** HANDLE MITSUBISHI VANE CHANGES ********
@@ -563,6 +565,8 @@ void MitsubishiHeatPump::hpSettingsChanged() {
 
     ESP_LOGI(TAG, "Horizontal vane mode is: %s", currentSettings.wideVane);
 
+    this->update_fan_mode2(currentSettings.fan);
+        
     /*
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
      */
@@ -653,6 +657,7 @@ void MitsubishiHeatPump::setup() {
     this->swing_mode = climate::CLIMATE_SWING_OFF;
     this->vertical_swing_state_ = "auto";
     this->horizontal_swing_state_ = "auto";
+    this->fan_mode2_state_ = "OFF";
 
 #ifdef USE_CALLBACKS
     hp->setSettingsChangedCallback(
