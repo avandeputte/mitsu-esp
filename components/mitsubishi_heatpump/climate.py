@@ -21,10 +21,8 @@ CONF_SUPPORTS = "supports"
 CONF_HORIZONTAL_SWING_SELECT = "horizontal_vane_select"
 CONF_VERTICAL_SWING_SELECT = "vertical_vane_select"
 CONF_FAN_MODE_SELECT = "fan_mode_select"
-CONF_FAN_MODE2_SELECT = "fan_mode2_select"
 DEFAULT_CLIMATE_MODES = ["HEAT_COOL", "COOL", "HEAT", "DRY", "FAN_ONLY"]
 DEFAULT_FAN_MODES = ["AUTO", "DIFFUSE", "LOW", "MEDIUM", "MIDDLE", "HIGH"]
-DEFAULT_FAN_MODES2 = ["quiet", "auto", "1", "2", "3", "4"]
 DEFAULT_SWING_MODES = ["OFF", "VERTICAL", "HORIZONTAL", "BOTH"]
 HORIZONTAL_SWING_OPTIONS = [
     "auto",
