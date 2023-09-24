@@ -99,7 +99,7 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         // Use the temperature from an external sensor. Use
         // set_remote_temp(0) to switch back to the internal sensor.
         void set_remote_temperature(float);
-        void set_fan_spee(esphome::select::Select *fan_speed);
+        void set_fan_speed(esphome::select::Select *fan_speed);
         void set_vertical_vane_select(esphome::select::Select *vertical_vane_select);
         void set_horizontal_vane_select(esphome::select::Select *horizontal_vane_select);
 
@@ -113,8 +113,10 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         // Vane position
         void update_swing_horizontal(const std::string &swing);
         void update_swing_vertical(const std::string &swing);
+        void update_fan_speed(const std::string &speed);
         std::string vertical_swing_state_;
         std::string horizontal_swing_state_;
+        std::string fan_speed_state_;
 
         // Allow the HeatPump class to use get_hw_serial_
         friend class HeatPump;
@@ -145,10 +147,11 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
             nullptr;  // Select to store manual position of vertical swing
         esphome::select::Select *horizontal_vane_select_ =
             nullptr;  // Select to store manual position of horizontal swing
-        
+        esphome::select::Select *fan_speed_select_ =
+            nullptr;  // Select to store manual position of horizontal swing
         void on_horizontal_swing_change(const std::string &swing);
         void on_vertical_swing_change(const std::string &swing);
-
+        void on_fan_speed_change(const std::string &speed);
     private:
         // Retrieve the HardwareSerial pointer from friend and subclasses.
         HardwareSerial *hw_serial_;
