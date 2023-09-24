@@ -125,7 +125,15 @@ void MitsubishiHeatPump::update_swing_vertical(const std::string &swing) {
             this->vertical_swing_state_);  // Set current vertical swing position
     }
 }
+void MitsubishiHeatPump::update_fan_mode(const std::string &mode) {
+    this->fan_mode_state_ = mode;
 
+    if (this->fan_mode_select_ != nullptr &&
+        this->fan_mode_select_->state != this->fan_mode_state_) {
+        this->fan_mode_select_->publish_state(
+            this->fan_mode_state_);  // Set current fan speed
+    }
+}
 void MitsubishiHeatPump::set_vertical_vane_select(
     select::Select *vertical_vane_select) {
     this->vertical_vane_select_ = vertical_vane_select;
@@ -145,7 +153,15 @@ void MitsubishiHeatPump::set_horizontal_vane_select(
               this->on_horizontal_swing_change(value);
           });
 }
-
+void MitsubishiHeatPump::set_fan_mode_select(
+    select::Select *fan_mode_select) {
+      this->fan_mode_select_ = fan_mode_select;
+      this->fan_mode_select_->add_on_state_callback(
+          [this](const std::string &value, size_t index) {
+              if (value == this->fan_mode_state_) return;
+              this->on_fan_mode_change(value);
+          });
+}
 void MitsubishiHeatPump::on_vertical_swing_change(const std::string &swing) {
     ESP_LOGD(TAG, "Setting vertical swing position");
     bool updated = false;
@@ -216,6 +232,37 @@ void MitsubishiHeatPump::on_horizontal_swing_change(const std::string &swing) {
     hp->update();
  }
 
+void MitsubishiHeatPump::on_fan_mode_change(const std::string &mode) {
+    ESP_LOGD(TAG, "Setting fan speed");
+    bool updated = false;
+
+    if (mode == "QUIET") {
+        hp->setFanSpeed("QUIET");
+        updated = true;
+    } else if (mode == "AUTO") {
+        hp->setFanSpeed("AUTO");
+        updated = true;
+    } else if (mode == "1") {
+        hp->setFanSpeed("1");
+        updated = true;
+    } else if (mode == "2") {
+        hp->setFanSpeed("2");
+        updated = true;
+    } else if (mode == "3") {
+        hp->setFanSpeed("3");
+        updated = true;
+    } else if (mode == "4") {
+        hp->setFanSpeed("4");
+        updated = true;       
+    } else {
+        ESP_LOGW(TAG, "Invalid fan mode %s", mode);
+    }
+
+    ESP_LOGD(TAG, "Fan speed - Was HeatPump updated? %s", YESNO(updated));
+
+    // and the heat pump:
+    hp->update();
+ }
 /**
  * Implement control of a MitsubishiHeatPump.
  *
