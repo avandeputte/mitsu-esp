@@ -236,9 +236,8 @@ void MitsubishiHeatPump::on_fan_mode2_change(const std::string &mode2) {
     ESP_LOGD(TAG, "Setting fan speed");
     bool updated = false;
 
-    hp->setFanSpeed(mode2)
-    updates = true;      
-    /*if (mode2 == "QUIET") {
+   
+    if (mode2 == "QUIET") {
         hp->setFanSpeed("QUIET");
         updated = true;
     } else if (mode2 == "AUTO") {
@@ -258,7 +257,7 @@ void MitsubishiHeatPump::on_fan_mode2_change(const std::string &mode2) {
         updated = true;       
     } else {
         ESP_LOGW(TAG, "Invalid fan mode %s", mode);
-    }*/
+    }
 
     ESP_LOGD(TAG, "Fan speed2 - Was HeatPump updated? %s", YESNO(updated));
 
