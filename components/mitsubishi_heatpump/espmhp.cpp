@@ -501,16 +501,22 @@ void MitsubishiHeatPump::hpSettingsChanged() {
      */
     if (strcmp(currentSettings.fan, "QUIET") == 0) {
         this->fan_mode = climate::CLIMATE_FAN_DIFFUSE;
+        this->update_fan_mode2("QUIET");
     } else if (strcmp(currentSettings.fan, "1") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_LOW;
+        this->fan_mode = climate::CLIMATE_FAN_LOW;
+        this->update_fan_mode2("1");
     } else if (strcmp(currentSettings.fan, "2") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
+        this->fan_mode = climate::CLIMATE_FAN_MEDIUM;
+        this->update_fan_mode2("2");
     } else if (strcmp(currentSettings.fan, "3") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_MIDDLE;
+        this->fan_mode = climate::CLIMATE_FAN_MIDDLE;
+        this->update_fan_mode2("3");
     } else if (strcmp(currentSettings.fan, "4") == 0) {
-            this->fan_mode = climate::CLIMATE_FAN_HIGH;
+        this->fan_mode = climate::CLIMATE_FAN_HIGH;
+        this->update_fan_mode2("4");
     } else { //case "AUTO" or default:
         this->fan_mode = climate::CLIMATE_FAN_AUTO;
+        this->update_fan_mode2("AUTO");
     }
 
         
@@ -566,7 +572,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
 
     ESP_LOGI(TAG, "Horizontal vane mode is: %s", currentSettings.wideVane);
 
-    this->update_fan_mode2(currentSettings.fan);
+   
         
     /*
      * ******** HANDLE TARGET TEMPERATURE CHANGES ********
@@ -658,7 +664,7 @@ void MitsubishiHeatPump::setup() {
     this->swing_mode = climate::CLIMATE_SWING_OFF;
     this->vertical_swing_state_ = "auto";
     this->horizontal_swing_state_ = "auto";
-    this->fan_mode2_state_ = "OFF";
+    this->fan_mode2_state_ = "AUTO";
 
 #ifdef USE_CALLBACKS
     hp->setSettingsChangedCallback(
