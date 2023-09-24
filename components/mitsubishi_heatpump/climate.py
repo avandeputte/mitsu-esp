@@ -132,8 +132,8 @@ def to_code(config):
         yield cg.register_component(swing_select, conf)
         cg.add(var.set_vertical_vane_select(swing_select))
         
-    if CONF_FAN_MODE2 in config:
-        conf = config[CONF_FAN_MODE2]
+    if CONF_FAN_MODE2_SELECT in config:
+        conf = config[CONF_FAN_MODE2_SELECT]
         fan_mode2_select = yield select.new_select(conf,options=FAN_MODE2_OPTIONS)
         yield cg.register_component(fan_mode2_select, conf)
         cg.add(var.set_fan_mode2_select(fan_mode2_select))
