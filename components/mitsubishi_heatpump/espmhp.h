@@ -99,9 +99,10 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         // Use the temperature from an external sensor. Use
         // set_remote_temp(0) to switch back to the internal sensor.
         void set_remote_temperature(float);
-        void set_fan_mode2_select(esphome::select::Select *fan_mode2_select);
+
         void set_vertical_vane_select(esphome::select::Select *vertical_vane_select);
         void set_horizontal_vane_select(esphome::select::Select *horizontal_vane_select);
+        void set_fan_mode2_select(esphome::select::Select *fan_mode2_select);
 
     protected:
         // HeatPump object using the underlying Arduino library.
