@@ -134,6 +134,15 @@ void MitsubishiHeatPump::update_fan_mode2(const std::string &mode2) {
             this->fan_mode2_state_);  // Set current fan speed
     }
 }
+void MitsubishiHeatPump::update_climate_mode2(const std::string &mode2) {
+    this->climate_mode2_state_ = mode2;
+
+    if (this->climate_mode2_select_ != nullptr &&
+        this->climate_mode2_select_->state != this->climate_mode2_state_) {
+        this->climate_mode2_select_->publish_state(
+            this->climate_mode2_state_);  // Set current fan speed
+    }
+}
 void MitsubishiHeatPump::set_vertical_vane_select(
     select::Select *vertical_vane_select) {
     this->vertical_vane_select_ = vertical_vane_select;
@@ -160,6 +169,15 @@ void MitsubishiHeatPump::set_fan_mode2_select(
           [this](const std::string &value, size_t index) {
               if (value == this->fan_mode2_state_) return;
               this->on_fan_mode2_change(value);
+          });
+}
+void MitsubishiHeatPump::set_climate_mode2_select(
+    select::Select *climate_mode2_select) {
+      this->climate_mode2_select_ = climate_mode2_select;
+      this->climate_mode2_select_->add_on_state_callback(
+          [this](const std::string &value, size_t index) {
+              if (value == this->climate_mode2_state_) return;
+              this->on_climate_mode2_change(value);
           });
 }
 void MitsubishiHeatPump::on_vertical_swing_change(const std::string &swing) {
@@ -260,6 +278,35 @@ void MitsubishiHeatPump::on_fan_mode2_change(const std::string &mode2) {
     }
 
     ESP_LOGD(TAG, "Fan speed2 - Was HeatPump updated? %s", YESNO(updated));
+
+    // and the heat pump:
+    hp->update();
+ }
+void MitsubishiHeatPump::on_climate_mode2_change(const std::string &mode2) {
+    ESP_LOGD(TAG, "Setting climate mode");
+    bool updated = false;
+
+   
+    if (mode2 == "COOL") {
+        hp->setModeSetting("COOL");
+        hp->setPowerSetting("ON");
+        updated = true;
+    } else if (mode2 == "HEAT") {
+        hp->setModeSetting("HEAT");
+        hp->setPowerSetting("ON");
+        updated = true;
+    } else if (mode2 == "FAN") {
+        hp->setModeSetting("FAN");
+        hp->setPowerSetting("ON");
+        updated = true;
+    } else if (mode2 == "OFF") {
+        hp->setPowerSetting("OFF");
+        updated = true;     
+    } else {
+        ESP_LOGW(TAG, "Invalid climate mode %s", mode);
+    }
+
+    ESP_LOGD(TAG, "Climate mode - Was HeatPump updated? %s", YESNO(updated));
 
     // and the heat pump:
     hp->update();
@@ -455,6 +502,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     if (strcmp(currentSettings.power, "ON") == 0) {
         if (strcmp(currentSettings.mode, "HEAT") == 0) {
             this->mode = climate::CLIMATE_MODE_HEAT;
+            this->update_climate_mode2("HEAT");
             if (heat_setpoint != currentSettings.temperature) {
                 heat_setpoint = currentSettings.temperature;
                 save(currentSettings.temperature, heat_storage);
@@ -465,6 +513,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
             this->action = climate::CLIMATE_ACTION_DRYING;
         } else if (strcmp(currentSettings.mode, "COOL") == 0) {
             this->mode = climate::CLIMATE_MODE_COOL;
+            this->update_climate_mode2("COOL");
             if (cool_setpoint != currentSettings.temperature) {
                 cool_setpoint = currentSettings.temperature;
                 save(currentSettings.temperature, cool_storage);
@@ -472,6 +521,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
             this->action = climate::CLIMATE_ACTION_IDLE;
         } else if (strcmp(currentSettings.mode, "FAN") == 0) {
             this->mode = climate::CLIMATE_MODE_FAN_ONLY;
+            this->update_climate_mode2("FAN");
             this->action = climate::CLIMATE_ACTION_FAN;
         } else if (strcmp(currentSettings.mode, "AUTO") == 0) {
             this->mode = climate::CLIMATE_MODE_HEAT_COOL;
@@ -490,6 +540,7 @@ void MitsubishiHeatPump::hpSettingsChanged() {
     } else {
         this->mode = climate::CLIMATE_MODE_OFF;
         this->action = climate::CLIMATE_ACTION_OFF;
+        this->update_climate_mode2("OFF");
     }
 
     ESP_LOGI(TAG, "Climate mode is: %i", this->mode);
