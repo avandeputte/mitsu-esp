@@ -36,7 +36,7 @@ HORIZONTAL_SWING_OPTIONS = [
 ]
 VERTICAL_SWING_OPTIONS = ["swing", "auto", "up", "up_center", "center", "down_center", "down"]
 FAN_MODE2_OPTIONS = ["QUIET","AUTO","1","2","3","4"]
-CLIMATE_MODES2_OPTIONS = ["COOL","HEAT","FAN_ONLY"]
+CLIMATE_MODE2_OPTIONS = ["COOL","HEAT","FAN_ONLY"]
 
 MitsubishiHeatPump = cg.global_ns.class_(
     "MitsubishiHeatPump", climate.Climate, cg.PollingComponent
