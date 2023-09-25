@@ -103,7 +103,7 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         void set_vertical_vane_select(esphome::select::Select *vertical_vane_select);
         void set_horizontal_vane_select(esphome::select::Select *horizontal_vane_select);
         void set_fan_mode2_select(esphome::select::Select *fan_mode2_select);
-
+        void set_climate_mode2_select(esphome::select::Select *climate_mode2_select);
     protected:
         // HeatPump object using the underlying Arduino library.
         HeatPump* hp;
@@ -115,10 +115,11 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         void update_swing_horizontal(const std::string &swing);
         void update_swing_vertical(const std::string &swing);
         void update_fan_mode2(const std::string &mode2);
+        void update_climate_mode2(const std::string &mode2);
         std::string vertical_swing_state_;
         std::string horizontal_swing_state_;
         std::string fan_mode2_state_;
-
+        std::string climate_mode2_state_;
         // Allow the HeatPump class to use get_hw_serial_
         friend class HeatPump;
 
@@ -149,10 +150,13 @@ class MitsubishiHeatPump : public esphome::PollingComponent, public esphome::cli
         esphome::select::Select *horizontal_vane_select_ =
             nullptr;  // Select to store manual position of horizontal swing
         esphome::select::Select *fan_mode2_select_ =
-            nullptr;  // Select to store manual position of horizontal swing
+            nullptr;  
+        esphome::select::Select *climate_mode2_select_ =
+            nullptr;  
         void on_horizontal_swing_change(const std::string &swing);
         void on_vertical_swing_change(const std::string &swing);
         void on_fan_mode2_change(const std::string &mode2);
+        void on_climate_mode2_change(const std::string &mode2);
     private:
         // Retrieve the HardwareSerial pointer from friend and subclasses.
         HardwareSerial *hw_serial_;
